@@ -9,14 +9,13 @@ import { HttpOnlyGuard } from './http-only.guard';
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { JwtService } from '@nestjs/jwt';
 import { VerificationCodeDto } from './dto/verify-user.dto';
-import { MailService } from 'src/mail/mail.service';
 
 
 @Controller('auth')
 @ApiTags('auth')
 
 export class AuthController {
-    constructor(private authService: AuthService, private jwtService: JwtService, private mailService: MailService) {}
+    constructor(private authService: AuthService, private jwtService: JwtService) {}
 
 
     @Post('signup')
@@ -75,14 +74,6 @@ export class AuthController {
     }
 
 
-  @Post('/send')
-  async sendOTP(@Body('email') email: string, @Body('otp') otp: string) {
-    try {
-      await this.mailService.sendOTP(email, otp);
-      return { message: 'OTP sent successfully' };
-    } catch (error) {
-      return { message: 'Failed to send OTP', error: error.message };
-    }
-  }
+
   
 }

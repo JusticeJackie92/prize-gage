@@ -5,12 +5,10 @@ import { SignInDto } from './dto/signin.dto';
 import { Request as ExpressRequest } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { VerificationCodeDto } from './dto/verify-user.dto';
-import { MailService } from 'src/mail/mail.service';
 export declare class AuthController {
     private authService;
     private jwtService;
-    private mailService;
-    constructor(authService: AuthService, jwtService: JwtService, mailService: MailService);
+    constructor(authService: AuthService, jwtService: JwtService);
     signup(dto: SignUpDto): Promise<{
         message: string;
         user: {
@@ -31,11 +29,4 @@ export declare class AuthController {
         role: any;
     }>;
     verifyCode(dto: VerificationCodeDto): Promise<any>;
-    sendOTP(email: string, otp: string): Promise<{
-        message: string;
-        error?: undefined;
-    } | {
-        message: string;
-        error: any;
-    }>;
 }

@@ -22,12 +22,10 @@ const http_only_guard_1 = require("./http-only.guard");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_1 = require("@nestjs/jwt");
 const verify_user_dto_1 = require("./dto/verify-user.dto");
-const mail_service_1 = require("../mail/mail.service");
 let AuthController = class AuthController {
-    constructor(authService, jwtService, mailService) {
+    constructor(authService, jwtService) {
         this.authService = authService;
         this.jwtService = jwtService;
-        this.mailService = mailService;
     }
     signup(dto) {
         return this.authService.signUp(dto);
@@ -63,15 +61,6 @@ let AuthController = class AuthController {
         }
         await this.authService.markUserAsVerified(email);
         return { message: 'Verification successful' };
-    }
-    async sendOTP(email, otp) {
-        try {
-            await this.mailService.sendOTP(email, otp);
-            return { message: 'OTP sent successfully' };
-        }
-        catch (error) {
-            return { message: 'Failed to send OTP', error: error.message };
-        }
     }
 };
 __decorate([
@@ -114,18 +103,10 @@ __decorate([
     __metadata("design:paramtypes", [verify_user_dto_1.VerificationCodeDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "verifyCode", null);
-__decorate([
-    (0, common_1.Post)('/send'),
-    __param(0, (0, common_1.Body)('email')),
-    __param(1, (0, common_1.Body)('otp')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
-    __metadata("design:returntype", Promise)
-], AuthController.prototype, "sendOTP", null);
 AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     (0, swagger_1.ApiTags)('auth'),
-    __metadata("design:paramtypes", [auth_service_1.AuthService, jwt_1.JwtService, mail_service_1.MailService])
+    __metadata("design:paramtypes", [auth_service_1.AuthService, jwt_1.JwtService])
 ], AuthController);
 exports.AuthController = AuthController;
 //# sourceMappingURL=auth.controller.js.map
