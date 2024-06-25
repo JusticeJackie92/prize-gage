@@ -103,9 +103,33 @@ export class AuthService {
 
     if (!foundUser) {
       throw new BadRequestException('Wrong credentials');
+
+      
     }
     if(!foundUser.isVerifed){
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+      await this.prisma.prisma.otp.create({
+        data: {
+          email,
+          code: otpCode,
+        },
+      });
+
+      const { data, error } = await resend.emails.send({
+        from: 'Prize Gage <info@ivicview.com.ng>',
+        to: [email],
+        subject: 'Email Verification',
+        html: `<p>Your verification code is: <strong>${otpCode}</strong></p>`,
+      });
+      if (error) {
+        console.error('Failed to send verification email:', error);
+        throw new ForbiddenException('Failed to send verification email');
+      }
+
       throw new UnauthorizedException('Please verify your email before signing in');
+    
+
     }
 
     const compareSuccess = await this.comparePasswords({
