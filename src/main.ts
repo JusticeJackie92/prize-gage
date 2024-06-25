@@ -18,10 +18,16 @@ async function bootstrap() {
         .addTag('api')
         .build();
     
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api', app, document);
+        const document = SwaggerModule.createDocument(app, config);
+        SwaggerModule.setup('api', app, document);
+        app.enableCors({
+          origin: '*',
+          methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+          preflightContinue: false,
+          optionsSuccessStatus: 204,
+        });
     app.use(cookieParser());
 
-  await app.listen(3003);
+  await app.listen(3000);
 }
 bootstrap();
