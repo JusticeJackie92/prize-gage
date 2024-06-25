@@ -69,6 +69,68 @@ let AuthService = class AuthService {
             },
         };
     }
+    async sendForgotPasswordOTP(email) {
+        const user = await this.prisma.prisma.user.findUnique({ where: { email } });
+        if (!user) {
+            throw new common_1.BadRequestException('User not found');
+        }
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        await this.prisma.prisma.otp.create({
+            data: {
+                email,
+                code: otpCode,
+            },
+        });
+        const { error } = await resend.emails.send({
+            from: 'Prize Gage <info@ivicview.com.ng>',
+            to: [email],
+            subject: 'Forgot Password OTP',
+            html: `<p>Your OTP for password reset is: <strong>${otpCode}</strong></p>`,
+        });
+        if (error) {
+            throw new common_1.BadRequestException('Failed to send OTP');
+        }
+    }
+    async resetPassword(email, newPassword) {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await this.prisma.prisma.user.update({
+            where: { email },
+            data: { hashedPassword },
+        });
+    }
+    async resendOTP(email) {
+        const foundUser = await this.prisma.prisma.user.findUnique({
+            where: {
+                email,
+            },
+        });
+        if (!foundUser) {
+            throw new common_1.BadRequestException('User not found');
+        }
+        if (foundUser.isVerifed) {
+            throw new common_1.BadRequestException('User is already verified');
+        }
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        await this.prisma.prisma.otp.create({
+            data: {
+                email,
+                code: otpCode,
+            },
+        });
+        const { data, error } = await resend.emails.send({
+            from: 'Prize Gage <info@ivicview.com.ng>',
+            to: [email],
+            subject: 'Email Verification',
+            html: `<p>Your verification code is: <strong>${otpCode}</strong></p>`,
+        });
+        if (error) {
+            console.error('Failed to send verification email:', error);
+            throw new common_1.ForbiddenException('Failed to send verification email');
+        }
+        return {
+            message: 'OTP resent successfully',
+        };
+    }
     async verifyUser(dto) {
         const { email, code } = dto;
         const otp = await this.prisma.prisma.otp.findFirst({
@@ -93,6 +155,23 @@ let AuthService = class AuthService {
             throw new common_1.BadRequestException('Wrong credentials');
         }
         if (!foundUser.isVerifed) {
+            const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+            await this.prisma.prisma.otp.create({
+                data: {
+                    email,
+                    code: otpCode,
+                },
+            });
+            const { data, error } = await resend.emails.send({
+                from: 'Prize Gage <info@ivicview.com.ng>',
+                to: [email],
+                subject: 'Email Verification',
+                html: `<p>Your verification code is: <strong>${otpCode}</strong></p>`,
+            });
+            if (error) {
+                console.error('Failed to send verification email:', error);
+                throw new common_1.ForbiddenException('Failed to send verification email');
+            }
             throw new common_1.UnauthorizedException('Please verify your email before signing in');
         }
         const compareSuccess = await this.comparePasswords({

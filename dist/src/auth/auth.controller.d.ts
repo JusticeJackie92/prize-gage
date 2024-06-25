@@ -5,6 +5,8 @@ import { SignInDto } from './dto/signin.dto';
 import { Request as ExpressRequest } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { VerificationCodeDto } from './dto/verify-user.dto';
+import { ResendOtp } from './dto/resend-otp';
+import { ResetPasswordDTO } from './dto/reset-password';
 export declare class AuthController {
     private authService;
     private jwtService;
@@ -29,4 +31,13 @@ export declare class AuthController {
         role: any;
     }>;
     verifyCode(dto: VerificationCodeDto): Promise<any>;
+    forgotPassword(dto: ResendOtp): Promise<{
+        message: string;
+    }>;
+    resetPassword(dto: ResetPasswordDTO): Promise<{
+        message: string;
+    }>;
+    resendOTP(dto: ResendOtp): Promise<{
+        message: string;
+    }>;
 }

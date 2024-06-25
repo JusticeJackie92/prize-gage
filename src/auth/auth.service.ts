@@ -75,6 +75,93 @@ export class AuthService {
       },
     };
   }
+
+
+
+  async sendForgotPasswordOTP(email: string) {
+    const user = await this.prisma.prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await this.prisma.prisma.otp.create({
+      data: {
+        email,
+        code: otpCode,
+      },
+    });
+
+    const {  error } = await resend.emails.send({
+      from: 'Prize Gage <info@ivicview.com.ng>',
+      to: [email],
+      subject: 'Forgot Password OTP',
+      html: `<p>Your OTP for password reset is: <strong>${otpCode}</strong></p>`,
+    });
+
+    if (error) {
+      throw new BadRequestException('Failed to send OTP');
+    }
+  }
+
+
+  async resetPassword(email: string, newPassword: string) {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.prisma.user.update({
+      where: { email },
+      data: { hashedPassword },
+    });
+  }
+  
+
+
+
+  async resendOTP(email: string): Promise<{ message: string }> {
+    const foundUser = await this.prisma.prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!foundUser) {
+      throw new BadRequestException('User not found');
+    }
+
+    if (foundUser.isVerifed) {
+      throw new BadRequestException('User is already verified');
+    }
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await this.prisma.prisma.otp.create({
+      data: {
+        email,
+        code: otpCode,
+      },
+    });
+
+    const { data, error } = await resend.emails.send({
+      from: 'Prize Gage <info@ivicview.com.ng>', // Replace with your from email
+      to: [email],
+      subject: 'Email Verification',
+      html: `<p>Your verification code is: <strong>${otpCode}</strong></p>`,
+    });
+
+    if (error) {
+      console.error('Failed to send verification email:', error);
+      throw new ForbiddenException('Failed to send verification email');
+    }
+
+    return {
+      message: 'OTP resent successfully',
+    };
+  
+}
+
+
+
   async verifyUser(dto: VerificationCodeDto): Promise<boolean> {
     const {email, code} = dto
     const otp = await this.prisma.prisma.otp.findFirst({

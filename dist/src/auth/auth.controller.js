@@ -22,6 +22,8 @@ const http_only_guard_1 = require("./http-only.guard");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_1 = require("@nestjs/jwt");
 const verify_user_dto_1 = require("./dto/verify-user.dto");
+const resend_otp_1 = require("./dto/resend-otp");
+const reset_password_1 = require("./dto/reset-password");
 let AuthController = class AuthController {
     constructor(authService, jwtService) {
         this.authService = authService;
@@ -61,6 +63,29 @@ let AuthController = class AuthController {
         }
         await this.authService.markUserAsVerified(email);
         return { message: 'Verification successful' };
+    }
+    async forgotPassword(dto) {
+        const { email } = dto;
+        if (!email) {
+            throw new common_2.BadRequestException('Email is required');
+        }
+        await this.authService.sendForgotPasswordOTP(email);
+        return { message: 'Reset Password OTP sent successfully' };
+    }
+    async resetPassword(dto) {
+        const { email, code, password } = dto;
+        if (!email || !code || !password) {
+            throw new common_2.BadRequestException('Email, code, and newPassword are required');
+        }
+        await this.authService.verifyUser({ email, code });
+        await this.authService.resetPassword(email, password);
+        return { message: 'Password reset successful' };
+    }
+    async resendOTP(dto) {
+        if (!dto.email) {
+            throw new common_2.BadRequestException('Email is required');
+        }
+        return this.authService.resendOTP(dto.email);
     }
 };
 __decorate([
@@ -103,6 +128,27 @@ __decorate([
     __metadata("design:paramtypes", [verify_user_dto_1.VerificationCodeDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "verifyCode", null);
+__decorate([
+    (0, common_1.Post)('forgot-password'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [resend_otp_1.ResendOtp]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "forgotPassword", null);
+__decorate([
+    (0, common_1.Post)('reset-password'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [reset_password_1.ResetPasswordDTO]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "resetPassword", null);
+__decorate([
+    (0, common_1.Post)('resend-otp'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [resend_otp_1.ResendOtp]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "resendOTP", null);
 AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     (0, swagger_1.ApiTags)('auth'),

@@ -19,6 +19,11 @@ export declare class AuthService {
             role: import(".prisma/client").$Enums.UserRole;
         };
     }>;
+    sendForgotPasswordOTP(email: string): Promise<void>;
+    resetPassword(email: string, newPassword: string): Promise<void>;
+    resendOTP(email: string): Promise<{
+        message: string;
+    }>;
     verifyUser(dto: VerificationCodeDto): Promise<boolean>;
     markUserAsVerified(email: string): Promise<void>;
     signin(dto: SignInDto, req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
