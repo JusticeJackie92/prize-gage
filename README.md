@@ -1,2 +1,0 @@
-# prize-gage
-# backendprice-gage
